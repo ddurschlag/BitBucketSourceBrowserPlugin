@@ -6,7 +6,8 @@ A bitbucket plugin for [SourceBrowser](https://github.com/KirillOsenkov/SourceBr
 ```
 <appSettings>
         <add key="BitBucket:BitBucketUrl" value="<your url here>"/>
-    </appSettings>```
+    </appSettings>
+```
 1. Re-run the indexer.
 
 Note: if you'll be making changes to SourceBrowser, you should add BitBucketGlyph to your .git/info/exclude file to prevent conflation of the repositories.
