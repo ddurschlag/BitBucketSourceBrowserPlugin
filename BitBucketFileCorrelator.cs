@@ -25,27 +25,30 @@ namespace BitBucketGlyph
 
         public bool TryGetUriForFile(string filePath, out Uri bitBucketUri)
         {
-            var analyzer = new GitSourceAnalyzer(filePath);
-            Dictionary<string, Uri> possibleOrigins = analyzer.PossibleOrigins.Where(kvp => kvp.Value.Host == Host).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-            if (possibleOrigins.Count > 0)
+            GitSourceAnalyzer analyzer;
+            if (GitSourceAnalyzer.TryCreate(filePath, out analyzer))
             {
-                Uri origin;
+                Dictionary<string, Uri> possibleOrigins = analyzer.PossibleOrigins.Where(kvp => kvp.Value.Host == Host).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-                if (!possibleOrigins.TryGetValue(PreferredRemote, out origin))
+                if (possibleOrigins.Count > 0)
                 {
-                    origin = possibleOrigins.First().Value;
-                }
+                    Uri origin;
 
-                var projectAndRepo = origin.AbsolutePath.Trim('/').Replace(BITBUCKET_REPO_PATH_PREFIX, string.Empty).Split('/');
-                var remote = Client.Manufacture(projectAndRepo[0]).FirstOrDefault(r => r.Name + GIT_EXTENSION == projectAndRepo[1]);
-                if (remote != null)
-                {
-                    var remoteUri = remote.Uris.FirstOrDefault(u => u.Scheme.StartsWith("http"));
-                    if (remoteUri != null)
+                    if (!possibleOrigins.TryGetValue(PreferredRemote, out origin))
                     {
-                        bitBucketUri = AddToPath(remoteUri, analyzer.RepoRelativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Where(p => !string.IsNullOrEmpty(p)));
-                        return true;
+                        origin = possibleOrigins.First().Value;
+                    }
+
+                    var projectAndRepo = origin.AbsolutePath.Trim('/').Replace(BITBUCKET_REPO_PATH_PREFIX, string.Empty).Split('/');
+                    var remote = Client.Manufacture(projectAndRepo[0]).FirstOrDefault(r => r.Name + GIT_EXTENSION == projectAndRepo[1]);
+                    if (remote != null)
+                    {
+                        var remoteUri = remote.Uris.FirstOrDefault(u => u.Scheme.StartsWith("http"));
+                        if (remoteUri != null)
+                        {
+                            bitBucketUri = AddToPath(remoteUri, analyzer.RepoRelativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Where(p => !string.IsNullOrEmpty(p)));
+                            return true;
+                        }
                     }
                 }
             }

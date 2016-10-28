@@ -11,10 +11,25 @@ namespace BitBucketGlyph
     {
         public const string GIT_DIR = @".git";
 
-        public GitSourceAnalyzer(string path)
+        public static bool TryCreate(string path, out GitSourceAnalyzer result)
         {
             path = GetProperFilePathCapitalization(Path.GetFullPath(path));
             var workdir = Repository.Discover(path);
+
+            if (workdir != null)
+            {
+                result = new GitSourceAnalyzer(path, workdir);
+                return true;
+            }
+            else
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        private GitSourceAnalyzer(string path, string workdir)
+        {
             RepoRelativePath = path.Replace(workdir.Replace(string.Concat(Path.DirectorySeparatorChar, GIT_DIR), string.Empty), string.Empty);
 
             using (var repo = new Repository(workdir))
